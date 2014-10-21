@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>Snrj:Teknoromi-sidebar</id>
+	<version>1.0</version>
+	<file name="$themedir/BoardIndex.template.php">
+		<operation>
+		<search position="replace"><![CDATA[<div id="boardindex_table">]]></search>
+			<add><![CDATA[<table border="0" width="100%" cellpadding="0" cellspacing="0">
+		<tbody><tr>';
+		if (!empty($modSettings['sideleft']))
+			{
+		    echo '<td valign="top">
+			<button type="button" id="teknoleft" title="" onclick="leftPanel.toggle();"></button>
+			</td>
+			<td valign="top" id="upshrinkLeftBarTD">
+				<div id="upshrinkLeftBar" style="width:',$modSettings['sideleftwidth'] ? $modSettings['sideleftwidth'] :'200px','; margin-right:4px; overflow:auto;" >
+					',$modSettings['sideleft1'],'
+				</div>
+			</td>';
+			}
+			echo '<td valign="top" width="100%">
+			<table id="maintable" border="0" width="100%" cellpadding="0" cellspacing="0"><tbody><tr><td valign="top">	
+		<div id="boardindex_table">]]></add>
+		</operation>
+		<operation>
+		<search position="replace"><![CDATA[// Info center collapse object.
+	echo ']]></search>
+			<add><![CDATA[// Info center collapse object.
+	echo '</td></tr></tbody></table>';
+		if (!empty($modSettings['sideright']))
+			{
+			echo '<td valign="top" id="upshrinkRightBarTD">
+				<div id="upshrinkRightBar" style="width:',$modSettings['siderightwidth'] ? $modSettings['siderightwidth'] :'200px','; margin-right:4px; overflow:auto;">
+				',$modSettings['sideright1'],'
+				</div>
+			</td>
+			<td valign="top">
+			<button type="button" onclick="rightPanel.toggle();" id="teknoright"></button>
+			</td>';
+			}
+				echo '</td>
+		</tr></tbody></table>]]></add>
+		</operation>
+		<operation>
+		<search position="replace"><![CDATA[var oInfoCenterToggle = new smc_Toggle({]]></search>
+			<add><![CDATA[var teknoromi_sidebar = new Object();
+		teknoromi_sidebar["left"] = "left Panel";
+		teknoromi_sidebar["right"] = "right Panel";
+		function setUpshrinkTitles() {if(this.opt.bToggleEnabled){ var panel = this.opt.aSwappableContainers[0].substring(8, this.opt.aSwappableContainers[0].length - 3).toLowerCase(); document.getElementById("tekno" + panel).setAttribute("title", (this.bCollapsed ? "Hide the " : "Show the ") + teknoromi_sidebar[panel]);}}	
+		var leftPanel=new smc_Toggle({bToggleEnabled:true,bCurrentlyCollapsed:false,funcOnBeforeCollapse:setUpshrinkTitles,funcOnBeforeExpand:setUpshrinkTitles,aSwappableContainers:[\'upshrinkLeftBar\'],oCookieOptions:{bUseCookie:true,sCookieName:\'upshrleftPanel\',sCookieValue:\'0\'}});	
+		var rightPanel=new smc_Toggle({bToggleEnabled:true,bCurrentlyCollapsed:false,funcOnBeforeCollapse:setUpshrinkTitles,funcOnBeforeExpand:setUpshrinkTitles,aSwappableContainers:[\'upshrinkRightBar\'],oCookieOptions:{bUseCookie:true,sCookieName:\'upshrrightPanel\',sCookieValue:\'0\'}});	
+		var oInfoCenterToggle = new smc_Toggle({]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Admin.php">
+		<operation>
+			<search position="before"><![CDATA[						// Note the comma!! The setting with automatically appear with the first mod to be added.]]></search>
+			<add><![CDATA[
+						'teknoromisidebar' => array($txt['teknoromisidebartitle']),]]></add>
+		</operation>
+     </file>
+
+	<file name="$sourcedir/ManageSettings.php">
+		<operation>
+			<search position="before"><![CDATA[// Mod authors, once again, if you have a whole section to add do it AFTER this line, and keep a comma at the end.]]></search>
+			<add><![CDATA[		
+		'teknoromisidebar' => 'teknoromisidebarSettings',]]></add>
+		</operation>
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+/* tenoromi sidebar smf.teknoromi.com yapımıdır */	
+function teknoromisidebarSettings($return_config = false)
+	{
+		global $txt, $scripturl, $context, $modSettings, $sc, $modSettings;
+
+		$config_vars = array(
+			  
+				array('check', 'sideleft'),
+				array('text', 'sideleftwidth'),
+				array('large_text', 'sideleft1'),
+				'',
+				array('check', 'sideright'),
+				array('text', 'siderightwidth'),
+				array('large_text', 'sideright1'),
+				
+		);
+	if ($return_config)
+			return $config_vars;
+
+		$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=teknoromisidebar';
+		$context['settings_title'] = $txt['teknoromisidebartitle'];
+
+		// Saving?
+		if (isset($_GET['save']))
+		{
+			saveDBSettings($config_vars);
+			redirectexit('action=admin;area=modsettings;sa=teknoromisidebar');
+		}
+
+		prepareDBSettingContext($config_vars);
+	}			
+	]]></add>
+		</operation>
+
+	</file>
+	<file name="Themes/default/languages/Modifications.turkish-utf8.php" error="skip">
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+	/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
+	$txt['sideleft']='Sol Sidebarı Aktif Et';
+	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
+	$txt['sideright']='Sağ Sidebarı Aktif Et';
+	$txt['sideright1']='Html veya Yazı Girebilirsiniz';
+	$txt['sideleftwidth']='Sol Sidebar Genişlik ayarı(25%,200px..)';
+	$txt['siderightwidth']='Sağ Sidebar Genişlik ayarı(25%,200px..)';
+	]]></add>
+		</operation>
+	</file>
+	<file name="Themes/default/languages/Modifications.english.php" error="skip">
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+	/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+	$txt['teknoromisidebartitle']='Teknoromi Sidebar Mod';
+	$txt['sideleft']='Left Panel Active';
+	$txt['sideleft1']='Html and Textarea post';
+	$txt['sideright']='Right Panel Active';
+	$txt['sideright1']='Html and Textarea post';
+	$txt['sideleftwidth']='Left width settings(25%,200px..)';
+	$txt['siderightwidth']='Right width settings(25%,200px..)';
+	]]></add>
+		</operation>
+	</file>
+	<file name="Themes/default/languages/Modifications.turkish.php" error="skip">
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+	/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
+	$txt['sideleft']='Sol Sidebarı Aktif Et';
+	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
+	$txt['sideright']='Sağ Sidebarı Aktif Et';
+	$txt['sideright1']='Html veya Yazı Girebilirsiniz';
+	$txt['sideleftwidth']='Sol Sidebar Genişlik ayarı(25%,200px..)';
+	$txt['siderightwidth']='Sağ Sidebar Genişlik ayarı(25%,200px..)';
+	]]></add>
+		</operation>
+	</file>
+   <file name="Themes/default/css/index.css">
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+	/* tenoromi sidebar smf.teknoromi.com yapımıdır */		
+	#teknoleft,#teknoright{width: 20px;border: medium none;height: 20px;position: absolute;}
+	#teknoleft{margin-left: -20px;background: url('../images/sidebar.png') no-repeat scroll 0% 0% transparent;}
+	#teknoright{margin-left: 4px;background: url('../images/sidebar1.png') no-repeat scroll 0% 0% transparent;}
+	#teknoleft:hover,#teknoright:hover{}
+	#upshrinkLeftBar,#upshrinkRightBar{border: 1px solid #AAA;text-align: center;border-radius: 5px;}
+	]]></add>
+		</operation>
+	</file>
+
+</modification>
