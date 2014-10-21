@@ -1,0 +1,4 @@
+smfsidebar
+==========
+
+smf sidebar mod
