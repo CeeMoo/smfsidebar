@@ -15,8 +15,27 @@
 			</td>
 			<td valign="top" id="upshrinkLeftBarTD">
 				<div id="upshrinkLeftBar" style="width:',$modSettings['sideleftwidth'] ? $modSettings['sideleftwidth'] :'200px','; margin-right:4px; overflow:auto;" >
-					',$modSettings['sideleft1'],'
-				</div>
+					',$modSettings['sideleft1'],'';
+				if (!empty($modSettings['sidelefthaberetkin']))
+				{
+				$array = boardNews($modSettings['sidelefthaber'], $modSettings['sideleftsay'], null, 1000, 'array');
+					global $memberContext;	
+					foreach ($array as $news)
+					 {
+					  loadMemberData($news['poster']['id']);
+					  loadMemberContext($news['poster']['id']);
+						  echo '<div class="sidehaber">
+								<div class="sideBaslik">
+								', $news['icon'], '
+								<h3><a href="', $news['href'], '">', $news['subject'], '</a></h3>
+								</div>
+								<div class="snrj"> ', $memberContext[$news['poster']['id']]['avatar']['image'],' 
+								<p>', $txt['by'], '', $news['poster']['link'], '</p>
+								</div>
+								</div>';
+					 }
+				} 
+				echo'</div>
 			</td>';
 			}
 			echo '<td valign="top" width="100%">
@@ -32,8 +51,27 @@
 			{
 			echo '<td valign="top" id="upshrinkRightBarTD">
 				<div id="upshrinkRightBar" style="width:',$modSettings['siderightwidth'] ? $modSettings['siderightwidth'] :'200px','; margin-right:4px; overflow:auto;">
-				',$modSettings['sideright1'],'
-				</div>
+				',$modSettings['sideright1'],'';
+				if (!empty($modSettings['siderighthaberetkin']))
+				{
+				$array = boardNews($modSettings['siderighthaber'], $modSettings['siderightsay'], null, 1000, 'array');
+					global $memberContext;	
+					foreach ($array as $news)
+					 {
+					  loadMemberData($news['poster']['id']);
+					  loadMemberContext($news['poster']['id']);
+						  echo '<div class="sidehaber">
+								<div class="sideBaslik">
+								', $news['icon'], '
+								<h3><a href="', $news['href'], '">', $news['subject'], '</a></h3>
+								</div>
+								<div class="snrj"> ', $memberContext[$news['poster']['id']]['avatar']['image'],' 
+								<p>', $txt['by'], '', $news['poster']['link'], '</p>
+								</div>
+								</div>';
+					 }
+				 } 
+				echo '</div>
 			</td>
 			<td valign="top">
 			<button type="button" onclick="rightPanel.toggle();" id="teknoright"></button>
@@ -51,6 +89,167 @@
 		var leftPanel=new smc_Toggle({bToggleEnabled:true,bCurrentlyCollapsed:false,funcOnBeforeCollapse:setUpshrinkTitles,funcOnBeforeExpand:setUpshrinkTitles,aSwappableContainers:[\'upshrinkLeftBar\'],oCookieOptions:{bUseCookie:true,sCookieName:\'upshrleftPanel\',sCookieValue:\'0\'}});	
 		var rightPanel=new smc_Toggle({bToggleEnabled:true,bCurrentlyCollapsed:false,funcOnBeforeCollapse:setUpshrinkTitles,funcOnBeforeExpand:setUpshrinkTitles,aSwappableContainers:[\'upshrinkRightBar\'],oCookieOptions:{bUseCookie:true,sCookieName:\'upshrrightPanel\',sCookieValue:\'0\'}});	
 		var oInfoCenterToggle = new smc_Toggle({]]></add>
+		</operation>
+		<operation>
+		<search position="replace"><![CDATA[?>]]></search>
+			<add><![CDATA[
+			function boardNews($board = null, $limit = null, $start = null, $length = null, $output_method = 'echo')
+{
+	global $scripturl, $db_prefix, $txt, $settings, $modSettings, $context;
+	global $smcFunc;
+
+	loadLanguage('Stats');
+
+	// Must be integers....
+	if ($limit === null)
+		$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 5;
+	else
+		$limit = (int) $limit;
+
+	if ($start === null)
+		$start = isset($_GET['start']) ? (int) $_GET['start'] : 0;
+	else
+		$start = (int) $start;
+
+	if ($board !== null)
+		$board = (int) $board;
+	elseif (isset($_GET['board']))
+		$board = (int) $_GET['board'];
+
+	if ($length === null)
+		$length = isset($_GET['length']) ? (int) $_GET['length'] : 0;
+	else
+		$length = (int) $length;
+
+	$limit = max(0, $limit);
+	$start = max(0, $start);
+
+	// Make sure guests can see this board.
+	$request = $smcFunc['db_query']('', '
+		SELECT id_board
+		FROM {db_prefix}boards
+		WHERE ' . ($board === null ? '' : 'id_board = {int:current_board}
+			AND ') . 'FIND_IN_SET(-1, member_groups) != 0
+		LIMIT 1',
+		array(
+			'current_board' => $board,
+		)
+	);
+	if ($smcFunc['db_num_rows']($request) == 0)
+	{
+		if ($output_method == 'echo')
+			die($txt['ssi_no_guests']);
+		else
+			return array();
+	}
+	list ($board) = $smcFunc['db_fetch_row']($request);
+	$smcFunc['db_free_result']($request);
+
+	// Load the message icons - the usual suspects.
+	$stable_icons = array('xx', 'thumbup', 'thumbdown', 'exclamation', 'question', 'lamp', 'smiley', 'angry', 'cheesy', 'grin', 'sad', 'wink', 'moved', 'recycled', 'wireless');
+	$icon_sources = array();
+	foreach ($stable_icons as $icon)
+		$icon_sources[$icon] = 'images_url';
+
+	// Find the post ids.
+	$request = $smcFunc['db_query']('', '
+		SELECT t.id_first_msg
+		FROM {db_prefix}topics as t
+		LEFT JOIN {db_prefix}boards as b ON (b.id_board = t.id_board)
+		WHERE t.id_board = {int:current_board}' . ($modSettings['postmod_active'] ? '
+			AND t.approved = {int:is_approved}' : '') . '
+			AND {query_see_board}
+		ORDER BY t.id_first_msg DESC
+		LIMIT ' . $start . ', ' . $limit,
+		array(
+			'current_board' => $board,
+			'is_approved' => 1,
+		)
+	);
+	$posts = array();
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+		$posts[] = $row['id_first_msg'];
+	$smcFunc['db_free_result']($request);
+
+	if (empty($posts))
+		return array();
+
+	// Find the posts.
+	$request = $smcFunc['db_query']('', '
+		SELECT
+			m.icon, m.subject, m.body, IFNULL(mem.real_name, m.poster_name) AS poster_name, m.poster_time,
+			t.num_replies, t.id_topic, m.id_member, m.smileys_enabled, m.id_msg, t.locked, t.id_last_msg
+		FROM {db_prefix}topics AS t
+			INNER JOIN {db_prefix}messages AS m ON (m.id_msg = t.id_first_msg)
+			LEFT JOIN {db_prefix}members AS mem ON (mem.id_member = m.id_member)
+		WHERE t.id_first_msg IN ({array_int:post_list})
+		ORDER BY t.id_first_msg DESC
+		LIMIT ' . count($posts),
+		array(
+			'post_list' => $posts,
+		)
+	);
+	$return = array();
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		// If we want to limit the length of the post.
+		if (!empty($length) && $smcFunc['strlen']($row['body']) > $length)
+		{
+			$row['body'] = $smcFunc['substr']($row['body'], 0, $length);
+
+			// The first space or line break. (<br />, etc.)
+			$cutoff = max(strrpos($row['body'], ' '), strrpos($row['body'], '<'));
+
+			if ($cutoff !== false)
+				$row['body'] = $smcFunc['substr']($row['body'], 0, $cutoff);
+			$row['body'] .= '...';
+		}
+
+		$row['body'] = parse_bbc($row['body'], $row['smileys_enabled'], $row['id_msg']);
+
+		// Check that this message icon is there...
+		if (empty($modSettings['messageIconChecks_disable']) && !isset($icon_sources[$row['icon']]))
+			$icon_sources[$row['icon']] = file_exists($settings['theme_dir'] . '/images/post/' . $row['icon'] . '.gif') ? 'images_url' : 'default_images_url';
+
+		censorText($row['subject']);
+		censorText($row['body']);
+
+		$return[] = array(
+			'id' => $row['id_topic'],
+			'message_id' => $row['id_msg'],
+			'icon' => '<img src="' . $settings[$icon_sources[$row['icon']]] . '/post/' . $row['icon'] . '.gif" alt="' . $row['icon'] . '" />',
+			'subject' => $row['subject'],
+			'time' => timeformat($row['poster_time']),
+			'timestamp' => forum_time(true, $row['poster_time']),
+			'body' => $row['body'],
+			'href' => $scripturl . '?topic=' . $row['id_topic'] . '.0',
+			'link' => '<a href="' . $scripturl . '?topic=' . $row['id_topic'] . '.0">' . $row['num_replies'] . ' ' . ($row['num_replies'] == 1 ? $txt['ssi_comment'] : $txt['ssi_comments']) . '</a>',
+			'replies' => $row['num_replies'],
+			'comment_href' => !empty($row['locked']) ? '' : $scripturl . '?action=post;topic=' . $row['id_topic'] . '.' . $row['num_replies'] . ';last_msg=' . $row['id_last_msg'],
+			'comment_link' => !empty($row['locked']) ? '' : '<a href="' . $scripturl . '?action=post;topic=' . $row['id_topic'] . '.' . $row['num_replies'] . ';last_msg=' . $row['id_last_msg'] . '">' . $txt['ssi_write_comment'] . '</a>',
+			'new_comment' => !empty($row['locked']) ? '' : '<a href="' . $scripturl . '?action=post;topic=' . $row['id_topic'] . '.' . $row['num_replies'] . '">' . $txt['ssi_write_comment'] . '</a>',
+			'poster' => array(
+				'id' => $row['id_member'],
+				'name' => $row['poster_name'],
+				'href' => !empty($row['id_member']) ? $scripturl . '?action=profile;u=' . $row['id_member'] : '',
+				'link' => !empty($row['id_member']) ? '<a href="' . $scripturl . '?action=profile;u=' . $row['id_member'] . '">' . $row['poster_name'] . '</a>' : $row['poster_name'],
+				
+			),
+			'locked' => !empty($row['locked']),
+			'is_last' => false
+		);
+	}
+	$smcFunc['db_free_result']($request);
+
+	if (empty($return))
+		return $return;
+
+	$return[count($return) - 1]['is_last'] = true;
+
+	if ($output_method != 'echo')
+		return $return;
+}
+?>			]]></add>
 		</operation>
 	</file>
 	<file name="$sourcedir/Admin.php">
@@ -72,35 +271,56 @@
 			<add><![CDATA[
 /* tenoromi sidebar smf.teknoromi.com yapımıdır */	
 function teknoromisidebarSettings($return_config = false)
+{
+	global $modSettings, $webmaster_email, $txt, $scripturl, $context, $sc, $smcFunc;
+	$boards = array();
+	$request = $smcFunc['db_query']('order_by_board_order', '
+		SELECT b.id_board, b.name AS board_name, c.name AS cat_name
+		FROM {db_prefix}boards AS b
+			LEFT JOIN {db_prefix}categories AS c ON (c.id_cat = b.id_cat)',
+		array(
+		)
+	);
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+		$boards[$row['id_board']] = $row['cat_name'] . ' - ' . $row['board_name'];
+	$smcFunc['db_free_result']($request);
+	$type_array = array('html', 'bbc', 'php');
+	$context['params']['type_array'] = array();
+	foreach ($type_array as $type)
+	$context['params']['type_array'][$type] = $txt['cb_type_' . $type];
+	$config_vars = array(
+	      
+			array('check', 'sideleft'),
+			array('text', 'sideleftwidth'),
+			array('large_text', 'sideleft1'),
+			array('check', 'sidelefthaberetkin'),
+			array('select', 'sidelefthaber', $boards,),
+			array('int', 'sideleftsay'),
+			'',
+			array('check', 'sideright'),
+			array('text', 'siderightwidth'),
+			array('large_text', 'sideright1'),
+			array('check', 'siderighthaberetkin'),
+	        array('select', 'siderighthaber', $boards,),
+			array('int', 'siderightsay'),
+	);
+	
+	
+if ($return_config)
+		return $config_vars;
+
+	$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=teknoromisidebar';
+	$context['settings_title'] = $txt['teknoromisidebartitle'];
+
+	// Saving?
+	if (isset($_GET['save']))
 	{
-		global $txt, $scripturl, $context, $modSettings, $sc, $modSettings;
+		saveDBSettings($config_vars);
+		redirectexit('action=admin;area=modsettings;sa=teknoromisidebar');
+	}
 
-		$config_vars = array(
-			  
-				array('check', 'sideleft'),
-				array('text', 'sideleftwidth'),
-				array('large_text', 'sideleft1'),
-				'',
-				array('check', 'sideright'),
-				array('text', 'siderightwidth'),
-				array('large_text', 'sideright1'),
-				
-		);
-	if ($return_config)
-			return $config_vars;
-
-		$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=teknoromisidebar';
-		$context['settings_title'] = $txt['teknoromisidebartitle'];
-
-		// Saving?
-		if (isset($_GET['save']))
-		{
-			saveDBSettings($config_vars);
-			redirectexit('action=admin;area=modsettings;sa=teknoromisidebar');
-		}
-
-		prepareDBSettingContext($config_vars);
-	}			
+	prepareDBSettingContext($config_vars);
+}
 	]]></add>
 		</operation>
 
@@ -124,22 +344,7 @@ function teknoromisidebarSettings($return_config = false)
 		<operation>
 			<search position="end"></search>
 			<add><![CDATA[
-	/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
-	$txt['teknoromisidebartitle']='Teknoromi Sidebar Mod';
-	$txt['sideleft']='Left Panel Active';
-	$txt['sideleft1']='Html and Textarea post';
-	$txt['sideright']='Right Panel Active';
-	$txt['sideright1']='Html and Textarea post';
-	$txt['sideleftwidth']='Left width settings(25%,200px..)';
-	$txt['siderightwidth']='Right width settings(25%,200px..)';
-	]]></add>
-		</operation>
-	</file>
-	<file name="Themes/default/languages/Modifications.turkish.php" error="skip">
-		<operation>
-			<search position="end"></search>
-			<add><![CDATA[
-	/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
 	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
 	$txt['sideleft']='Sol Sidebarı Aktif Et';
 	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
@@ -147,6 +352,33 @@ function teknoromisidebarSettings($return_config = false)
 	$txt['sideright1']='Html veya Yazı Girebilirsiniz';
 	$txt['sideleftwidth']='Sol Sidebar Genişlik ayarı(25%,200px..)';
 	$txt['siderightwidth']='Sağ Sidebar Genişlik ayarı(25%,200px..)';
+	$txt['sidelefthaberetkin']='Sol Sidebarda Bölüm Haberini etkinleştir';
+	$txt['sidelefthaber']='Bölüm Haberi Hangi Bölümden Çekilecek';
+	$txt['sideleftsay']='Bölüm Haberi Kaç Adet Gösterilecek';
+	$txt['siderighthaberetkin']='Sağ Sidebarda Bölüm Haberini etkinleştir';
+	$txt['siderighthaber']='Bölüm Haberi Hangi Bölümden Çekilecek';
+	$txt['siderightsay']='Bölüm Haberi Kaç Adet Gösterilecek';
+	]]></add>
+		</operation>
+	</file>
+	<file name="Themes/default/languages/Modifications.turkish.php" error="skip">
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
+	$txt['sideleft']='Sol Sidebarı Aktif Et';
+	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
+	$txt['sideright']='Sağ Sidebarı Aktif Et';
+	$txt['sideright1']='Html veya Yazı Girebilirsiniz';
+	$txt['sideleftwidth']='Sol Sidebar Genişlik ayarı(25%,200px..)';
+	$txt['siderightwidth']='Sağ Sidebar Genişlik ayarı(25%,200px..)';
+	$txt['sidelefthaberetkin']='Sol Sidebarda Bölüm Haberini etkinleştir';
+	$txt['sidelefthaber']='Bölüm Haberi Hangi Bölümden Çekilecek';
+	$txt['sideleftsay']='Bölüm Haberi Kaç Adet Gösterilecek';
+	$txt['siderighthaberetkin']='Sağ Sidebarda Bölüm Haberini etkinleştir';
+	$txt['siderighthaber']='Bölüm Haberi Hangi Bölümden Çekilecek';
+	$txt['siderightsay']='Bölüm Haberi Kaç Adet Gösterilecek';
 	]]></add>
 		</operation>
 	</file>
@@ -160,6 +392,9 @@ function teknoromisidebarSettings($return_config = false)
 	#teknoright{margin-left: 4px;background: url('../images/sidebar1.png') no-repeat scroll 0% 0% transparent;}
 	#teknoleft:hover,#teknoright:hover{}
 	#upshrinkLeftBar,#upshrinkRightBar{border: 1px solid #AAA;text-align: center;border-radius: 5px;}
+	.sidehaber{}
+	.sidebaslik{}
+	.snrj{}
 	]]></add>
 		</operation>
 	</file>
