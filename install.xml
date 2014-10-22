@@ -32,7 +32,7 @@
 								<div class="snrj"> ', $memberContext[$news['poster']['id']]['avatar']['image'],' 
 								<p>', $txt['by'], '', $news['poster']['link'], '</p>
 								</div>
-								</div>';
+								</div><hr/>';
 					 }
 				} 
 				echo'</div>
@@ -68,7 +68,7 @@
 								<div class="snrj"> ', $memberContext[$news['poster']['id']]['avatar']['image'],' 
 								<p>', $txt['by'], '', $news['poster']['link'], '</p>
 								</div>
-								</div>';
+								</div><hr/>';
 					 }
 				 } 
 				echo '</div>
@@ -269,7 +269,7 @@
 		<operation>
 			<search position="end"></search>
 			<add><![CDATA[
-/* tenoromi sidebar smf.teknoromi.com yapımıdır */	
+/* teknoromi sidebar smf.teknoromi.com yapımıdır */	
 function teknoromisidebarSettings($return_config = false)
 {
 	global $modSettings, $webmaster_email, $txt, $scripturl, $context, $sc, $smcFunc;
@@ -284,10 +284,6 @@ function teknoromisidebarSettings($return_config = false)
 	while ($row = $smcFunc['db_fetch_assoc']($request))
 		$boards[$row['id_board']] = $row['cat_name'] . ' - ' . $row['board_name'];
 	$smcFunc['db_free_result']($request);
-	$type_array = array('html', 'bbc', 'php');
-	$context['params']['type_array'] = array();
-	foreach ($type_array as $type)
-	$context['params']['type_array'][$type] = $txt['cb_type_' . $type];
 	$config_vars = array(
 	      
 			array('check', 'sideleft'),
@@ -329,22 +325,7 @@ if ($return_config)
 		<operation>
 			<search position="end"></search>
 			<add><![CDATA[
-	/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
-	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
-	$txt['sideleft']='Sol Sidebarı Aktif Et';
-	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
-	$txt['sideright']='Sağ Sidebarı Aktif Et';
-	$txt['sideright1']='Html veya Yazı Girebilirsiniz';
-	$txt['sideleftwidth']='Sol Sidebar Genişlik ayarı(25%,200px..)';
-	$txt['siderightwidth']='Sağ Sidebar Genişlik ayarı(25%,200px..)';
-	]]></add>
-		</operation>
-	</file>
-	<file name="Themes/default/languages/Modifications.english.php" error="skip">
-		<operation>
-			<search position="end"></search>
-			<add><![CDATA[
-/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+/* teknoromi sidebar smf.teknoromi.com yapımıdır */			
 	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
 	$txt['sideleft']='Sol Sidebarı Aktif Et';
 	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
@@ -361,11 +342,32 @@ if ($return_config)
 	]]></add>
 		</operation>
 	</file>
+	<file name="Themes/default/languages/Modifications.english.php" error="skip">
+		<operation>
+			<search position="end"></search>
+			<add><![CDATA[
+/* teknoromi sidebar smf.teknoromi.com yapımıdır */			
+	$txt['teknoromisidebartitle']='Teknoromi Sidebar Mod';
+	$txt['sideleft']='Left Panel Active';
+	$txt['sideleft1']='Html and Textarea post';
+	$txt['sideright']='Right Panel Active';
+	$txt['sideright1']='Html and Textarea post';
+	$txt['sideleftwidth']='Left width settings(25%,200px..)';
+	$txt['siderightwidth']='Right width settings(25%,200px..)';
+	$txt['sidelefthaberetkin']='Left Panel Board News Active';
+	$txt['sidelefthaber']='BoardNews which section';
+	$txt['sideleftsay']='BoardNews How Many pcs to show';
+	$txt['siderighthaberetkin']='Right Panel Board News Active';
+	$txt['siderighthaber']='BoardNews which section';
+	$txt['siderightsay']='BoardNews How Many pcs to show';
+	]]></add>
+		</operation>
+	</file>
 	<file name="Themes/default/languages/Modifications.turkish.php" error="skip">
 		<operation>
 			<search position="end"></search>
 			<add><![CDATA[
-/* tenoromi sidebar smf.teknoromi.com yapımıdır */			
+/* teknoromi sidebar smf.teknoromi.com yapımıdır */			
 	$txt['teknoromisidebartitle']='Teknoromi Sidebar Ayarları';
 	$txt['sideleft']='Sol Sidebarı Aktif Et';
 	$txt['sideleft1']='Html veya Yazı Girebilirsiniz';
@@ -386,15 +388,17 @@ if ($return_config)
 		<operation>
 			<search position="end"></search>
 			<add><![CDATA[
-	/* tenoromi sidebar smf.teknoromi.com yapımıdır */		
+	/* teknoromi sidebar smf.teknoromi.com yapımıdır */		
 	#teknoleft,#teknoright{width: 20px;border: medium none;height: 20px;position: absolute;}
 	#teknoleft{margin-left: -20px;background: url('../images/sidebar.png') no-repeat scroll 0% 0% transparent;}
 	#teknoright{margin-left: 4px;background: url('../images/sidebar1.png') no-repeat scroll 0% 0% transparent;}
 	#teknoleft:hover,#teknoright:hover{}
 	#upshrinkLeftBar,#upshrinkRightBar{border: 1px solid #AAA;text-align: center;border-radius: 5px;}
-	.sidehaber{}
-	.sidebaslik{}
-	.snrj{}
+	.sidehaber{text-align: left;margin: 4px;}
+	.sideBaslik img{float: left;}
+	.sideBaslik a{color: orangered;}
+	.snrj{text-align: left;color:#000;}
+	.snrj .avatar{width:20px;float: left;margin-left: 5px;}
 	]]></add>
 		</operation>
 	</file>
