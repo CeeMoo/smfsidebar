@@ -5,15 +5,20 @@
 	<version>1.1</version>
 	<file name="$themedir/index.template.php">
 		<operation>
-		<search position="replace"><![CDATA[	// The main content should go here.]]></search>
-			<add><![CDATA[teknoromisidebarsol();
-				// The main content should go here.]]></add>
+		<search position="replace"><![CDATA[	// Custom banners and shoutboxes should be placed here, before the linktree.]]></search>
+			<add><![CDATA[    teknoromisidebarsol();
+	// Custom banners and shoutboxes should be placed here, before the linktree.]]></add>
 		</operation>
 		<operation>
-		<search position="replace"><![CDATA[	// Show the "Powered by" and "Valid" logos, as well as the copyright. Remember, the copyright must be somewhere!]]></search>
-			<add><![CDATA[teknoromisidebarsag();
-teknoromisidebarscript();
-	// Show the "Powered by" and "Valid" logos, as well as the copyright. Remember, the copyright must be somewhere!]]></add>
+		<search position="replace"><![CDATA[function template_body_below()
+{
+	global $context, $settings, $options, $scripturl, $txt, $modSettings;]]></search>
+			<add><![CDATA[function template_body_below()
+{
+	global $context, $settings, $options, $scripturl, $txt, $modSettings;
+    teknoromisidebarsag();
+    teknoromisidebarscript();
+]]></add>
 		</operation>
 	</file>
 	<file name="$sourcedir/ManageSettings.php">
