@@ -3,20 +3,31 @@
 <package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
 	<id>Snrj:Teknoromi-sidebar</id>
 	<name>Teknoromi-sidebar</name>
-	<version>1.0</version>
-	<homepage>http://smf.teknoromi.com</homepage>
+	<version>1.1</version>
+	<homepage>http://smf.konusal.com</homepage>
 	<type>modification</type>
 	<install for="2.0 - 2.0.99">
 		<readme parsebbc="true">readme.txt</readme>
 		<modification type="file">install.xml</modification>
+		<require-file name="Subs-teknoromisidebar.php" destination="$sourcedir" />
+		<require-file name="teknoromisidebar.english.php" destination="$languagedir" />
+		<require-file name="teknoromisidebar.turkish.php" destination="$languagedir" />
+		<require-file name="teknoromisidebar.turkish-utf8.php" destination="$languagedir" />
 		<require-file name="sidebar.png" destination="$imagesdir" />
 		<require-file name="sidebar1.png" destination="$imagesdir" />
-		<redirect url="?action=admin;area=modsettings;sa=teknoromisidebar" timeout="5000">teknoromi-sidebar ayarlarına gidiyorsunuz</redirect> 
+		<code>install.php</code>
+		<redirect url="?action=admin;area=modsettings;sa=teknoromisidebar" timeout="1000"/> 
 	</install>
 	<uninstall for="2.0 - 2.0.99">
 		<modification type="file" reverse="true">install.xml</modification>
+		<remove-file name="$sourcedir/Subs-teknoromisidebar.php" />
+		<remove-file name="$languagedir/teknoromisidebar.english.php" />
+		<remove-file name="$languagedir/teknoromisidebar.turkish.php" />
+		<remove-file name="$languagedir/teknoromisidebar.turkish-utf8.php" />
 		<remove-file name="$imagesdir/sidebar.png" />
 		<remove-file name="$imagesdir/sidebar1.png" />
+		<code>install.php</code>
+		<redirect url="?action=admin;area=packages;sa=browse" timeout="1000"/> 
 	</uninstall>
 </package-info>
 
